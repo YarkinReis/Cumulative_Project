@@ -37,6 +37,23 @@ function generateStoryMarkup(story) {
 
 /** Gets list of stories from server, generates their HTML, and puts on page. */
 
+function getDeleteBtnHTML() {
+  return `
+      <span class="trash-can">
+        <i class="fas fa-trash-alt"></i>
+      </span>`;
+}
+
+
+function getStarHTML(story, user) {
+  const isFavorite = user.isFavorite(story);
+  const starType = isFavorite ? "fas" : "far";
+  return `
+      <span class="star">
+        <i class="${starType} fa-star"></i>
+      </span>`;
+}
+
 function putStoriesOnPage() {
   console.debug("putStoriesOnPage");
 
@@ -49,4 +66,69 @@ function putStoriesOnPage() {
   }
 
   $allStoriesList.show();
+}
+
+async function deleteStory(evt){
+  console.debug("deleteStory");
+  const $closestLi = $(evt.target).closest("li");
+  const storyId = $closestLi.attr("id");
+  await storyList.removeStory(currentUser,storyId);
+
+  await putUserStoriesOnPage();
+}
+
+async function submitNewStory(evt){
+  console.debug("submitNewStory");
+  evt.preventDefault();
+
+  const title = $("#create-title").val();
+  const author = $("#create-author").val();
+  const url = $("#create-url").val();
+  const username = currentUser.username;
+  const storyData = {title,author,url,username};
+
+  const story = await storyList.addStory(currentUser,storyData);
+
+  const $story = generateStoryMarkup(story);
+  $allStoriesList.prepend($story);
+
+  $submitForm.slideUp("slow");
+  $submitForm.trigger("reset");
+}
+
+$submitForm.on("click",submitNewStory);
+
+
+function putUserStoriesOnPage (){
+  console.debug("putUserStoriesOnPage");
+  $ownStories.empty();
+
+  if(currentUser.ownStories.length ===0){
+    $ownStories.append("<h5>No stories added by user!</h5> ");
+  }
+  else{
+    for(let story of currentUser.ownStories){
+      let $story = generateStoryMarkup(story,true);
+      $ownStories.append($story);
+    }
+  }
+  $ownStories.show();
+}
+
+function putFavoritesListOnPage (){
+  console.debug("putFavoritesOnPage");
+
+  $favoritedStories.empty();
+
+  if(currentUser.favorites.length === 0){
+    $favoritedStories.append("<h5>No favorites added!!</h5>");
+  }
+  else {
+    for(let story of currentUser.favorites){
+      const $story = generateStoryMarkup(story);
+      $favoritedStories.append($story);
+    }
+  }
+
+  $favoritedStories.show();
 }
