@@ -77,6 +77,8 @@ async function deleteStory(evt){
   await putUserStoriesOnPage();
 }
 
+$ownStories.on("click",".trash-can",deleteStory);
+
 async function submitNewStory(evt){
   console.debug("submitNewStory");
   evt.preventDefault();
@@ -132,3 +134,25 @@ function putFavoritesListOnPage (){
 
   $favoritedStories.show();
 }
+
+
+async function toggleStoryFavorite(evt){
+  console.debug("toggleStoryFavorite");
+
+  const $tgt = evt.target;
+  const $closestLi = tgt.closest("li");
+  const storyId = $closestLi.attr("id");
+  const story = storyList.stories.find(s => s.storyId === storyId);
+
+
+  if($tgt.hasClass("fas")){
+    await currentUser.removeFavorite(story);
+    $tgt.closest("i").toggleClass("fas far");
+  }
+  else {
+    await currentUser.addFavorite(story);
+    $tgt.closest("i").toggleClass("fas far");
+  }
+}
+
+$allStoriesList.on("click",".star",toggleStoryFavorite);
